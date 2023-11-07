@@ -1,6 +1,6 @@
 # pulse_play
 
-A new Flutter project.
+It is a music player.
 
 ## Getting Started
 
