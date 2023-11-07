@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pulse_play/color_constants.dart';
+import 'package:pulse_play/music_player_provider.dart';
 import 'package:pulse_play/utlis/dimensions.dart';
 import 'player_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class MediaList extends StatefulWidget {
   const MediaList({super.key});
@@ -16,7 +17,6 @@ class _MediaListState extends State<MediaList> {
   String songName = 'A SKY FULL OF STARS';
 
   OnAudioQuery audioQuery = OnAudioQuery();
-  AudioPlayer audioPlayer = AudioPlayer();
   List<SongModel> mp3Songs = [];
 
   Future<void> fetchMp3() async {
@@ -50,7 +50,6 @@ class _MediaListState extends State<MediaList> {
       fetchMp3();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -64,14 +63,16 @@ class _MediaListState extends State<MediaList> {
                 children: [
                   ResuableBackArrow(
                     onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => const PlayerScreen(
-                      //       isPlaying: false,
-                      //     ),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>  const PlayerScreen(
+                              isPlaying:  true,
+                              songName: 'hello',
+                              uri: 'fffff',
+                            )
+                        ),
+                      );
                     },
                   ),
                   SizedBox(
@@ -133,7 +134,6 @@ class _MediaListState extends State<MediaList> {
                     return ResuableListTile(
                       text: mp3Songs[index].title,
                       filePath: mp3Songs[index].uri!,
-                      audioPlayer: audioPlayer,
                     );
                   },
                 ),
@@ -169,66 +169,49 @@ class ResuableBackArrow extends StatelessWidget {
 class ResuableListTile extends StatefulWidget {
   const ResuableListTile({
     super.key,
-    required this.text, required this.filePath, required this.audioPlayer,
+    required this.text, required this.filePath,
   });
   final String text;
   final String filePath;
-  final AudioPlayer audioPlayer;
-
   @override
   State<ResuableListTile> createState() => _ResuableListTileState();
 }
 
 class _ResuableListTileState extends State<ResuableListTile> {
-  bool isSelected = false;
-  Future<void> playSong() async {
-    Future<void> playSong() async {
-      try {
-        await widget.audioPlayer.play(widget.filePath as Source);
-        setState(() {
-          isSelected = true;
-        });
-      } catch (e) {
-        print("Error playing song: $e");
-      }
-    }
-  }
+  bool isPlaying = false;
   @override
   Widget build(BuildContext context) {
+
     return ListTile(
-      title: Text(
+    title: Text(
         widget.text,
         style: const TextStyle(
           color: Color(0xFFA5A8AA),
-          fontSize: 16,
+          fontSize: 13,
           fontWeight: FontWeight.w400,
         ),
       ),
       trailing: StartButton(
         containerWidth: widgetWidth(45),
         containerHeight: widgetHeight(45),
-        isSelected: isSelected,
+        isSelected: isPlaying,
         onPressed: () {
-          if (isSelected) {
-            widget.audioPlayer.pause(); // Pause the song if it's already playing
-          } else {
-            playSong(); // Play the song when pressed
-          }
           setState(() {
-            isSelected = !isSelected;
+            isPlaying = !isPlaying;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>  PlayerScreen(
-                  isPlaying:  isSelected,
-                  songName: widget.text,
-                ),
+                  builder: (context) =>  PlayerScreen(
+                    isPlaying:  isPlaying,
+                    songName: widget.text,
+                    uri: widget.filePath,
+                  )
               ),
             );
           });
         },
       ),
-      tileColor: isSelected ? const Color(0xFF171717) : screenColor,
+      tileColor: isPlaying ? const Color(0xFF171717) : screenColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -369,3 +352,4 @@ class _StartButtonState extends State<StartButton> {
     );
   }
 }
+

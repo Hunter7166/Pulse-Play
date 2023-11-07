@@ -1,29 +1,22 @@
-import 'package:audioplayers/audioplayers.dart';
+//import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pulse_play/color_constants.dart';
+import 'package:pulse_play/music_player_provider.dart';
 import 'media_list.dart';
 import 'package:pulse_play/utlis/dimensions.dart';
 
 
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.isPlaying, required this.songName});
+  const PlayerScreen({super.key, required this.isPlaying, required this.songName, required this.uri});
    final bool isPlaying;
    final String songName;
+   final String uri;
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  AudioPlayer audioPlayer = AudioPlayer();
-  PlayerState playerState = PlayerState.stopped;
-
-  void _initAudioPlayer() {
-    audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
-      setState(() {
-        playerState = state;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +62,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               Text(
                 widget.songName,
                 style: const TextStyle(
-                  fontSize: 23,
+                  fontSize: 14,
                   color: Color(0xFFA5A8AA),
                 ),
               ),
@@ -131,9 +124,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       containerHeight: widgetHeight(80),
                       isSelected: isPlaying,
                       onPressed: (){
-                        setState(() {
-                          isPlaying = !isPlaying;
-                        });
+                        Provider.of<MusicPlayerProvider>(context, listen: false).playSong(widget.uri, isPlaying);
                       },
                   ),
                   ResuableButton(
