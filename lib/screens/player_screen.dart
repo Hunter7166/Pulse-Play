@@ -6,24 +6,33 @@ import 'package:pulse_play/music_player_provider.dart';
 import 'media_list.dart';
 import 'package:pulse_play/utlis/dimensions.dart';
 
-
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.isPlaying, required this.songName, required this.uri});
-   final bool isPlaying;
-   final String songName;
-   final String uri;
+  const PlayerScreen(
+      {super.key,
+      required this.isPlaying,
+      required this.songName,
+      required this.uri});
+  final bool isPlaying;
+  final String songName;
+  final String uri;
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<MusicPlayerProvider>(context, listen: false)
+        .playSong(widget.uri, widget.isPlaying);
+  }
 
   @override
   Widget build(BuildContext context) {
     String text = 'Playing Now';
-    Duration duration = Duration.zero;
+    Duration? duration = Duration.zero;
     Duration position = Duration.zero;
-    bool isPlaying =  widget.isPlaying;
+    bool isPlaying = widget.isPlaying;
     return SafeArea(
       child: Scaffold(
         backgroundColor: screenColor,
@@ -66,7 +75,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   color: Color(0xFFA5A8AA),
                 ),
               ),
-              const SizedBox(height: 10,),
+              const SizedBox(
+                height: 10,
+              ),
               const Text(
                 'ColdPlay',
                 style: TextStyle(
@@ -74,10 +85,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   color: Color(0xFFA5A8AA),
                 ),
               ),
-              const SizedBox(height: 90,),
+              const SizedBox(
+                height: 90,
+              ),
               SliderTheme(
                 data: const SliderThemeData(
-                  activeTrackColor:Color(0xFF7987FF),
+                  activeTrackColor: Color(0xFF7987FF),
                   inactiveTrackColor: Color(0xFF000000),
                   thumbColor: Color(0xFF7987FF),
                   thumbShape: RoundSliderThumbShape(
@@ -89,21 +102,37 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     overlayRadius: 17,
                   ),
                 ),
-                child: Slider(
-                    min: 0,
-                    max: duration.inSeconds.toDouble(),
-                    value: position.inSeconds.toDouble(),
-                    onChanged: (value){
-                    }
+                child: Consumer<MusicPlayerProvider>(
+                  builder: (context, musicProvider, child) {
+                     position = musicProvider.audioPlayer.position;
+                     duration = musicProvider.audioPlayer.duration;
+
+                    return Slider(
+                      min: 0,
+                      max: duration?.inSeconds.toDouble() ?? 0,
+                      value: position.inSeconds.toDouble(),
+                      onChanged: (value) {
+                        // You may add logic to seek to a specific position when the user interacts with the slider.
+                        musicProvider.audioPlayer.seek(Duration(seconds: value.toInt()));
+                      },
+                    );
+                  },
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formatTime(position),style: const TextStyle(color: Colors.grey),),
-                    Text(formatTime(duration),style: const TextStyle(color: Colors.grey),),
+                    Text(
+                      formatTime(position),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    Text(
+                      formatTime(duration!),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -111,21 +140,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ResuableButton(
-                      containerWidth: widgetWidth(78),
-                      containerHeight: widgetHeight(78),
-                      icon: const Icon(
-                        Icons.skip_previous_sharp,
-                        size: 20,
-                        color: Colors.grey,
-                      ),
+                    containerWidth: widgetWidth(78),
+                    containerHeight: widgetHeight(78),
+                    icon: const Icon(
+                      Icons.skip_previous_sharp,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
                   ),
                   StartButton(
-                      containerWidth: widgetWidth(80),
-                      containerHeight: widgetHeight(80),
-                      isSelected: isPlaying,
-                      onPressed: (){
-                        Provider.of<MusicPlayerProvider>(context, listen: false).playSong(widget.uri, isPlaying);
-                      },
+                    containerWidth: widgetWidth(80),
+                    containerHeight: widgetHeight(80),
+                    isSelected: isPlaying,
+                    onPressed: () {
+                      Provider.of<MusicPlayerProvider>(context, listen: false)
+                          .playSong(widget.uri, isPlaying);
+                    },
                   ),
                   ResuableButton(
                     containerWidth: widgetWidth(78),
@@ -146,17 +176,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 }
 
-String formatTime(Duration duration){
-  String twoDigits(int n) => n.toString().padLeft(2,'0');
+String formatTime(Duration duration) {
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
   final hours = twoDigits(duration.inHours);
   final minutes = twoDigits(duration.inMinutes.remainder(60));
   final seconds = twoDigits(duration.inSeconds.remainder(60));
-  
+
   String formattedTime = [
-    if(duration.inHours > 0) hours,
+    if (duration.inHours > 0) hours,
     minutes,
     seconds,
   ].join(':');
-  
+
   return formattedTime;
 }
